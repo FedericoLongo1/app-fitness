@@ -1,7 +1,7 @@
 // Netlify Function: análisis de comida con Gemini (free tier)
-// La API key vive en la variable de entorno GEMINI_API_KEY (Netlify → Site settings → Environment variables)
+// La API key vive en la variable de entorno GEMINI_API_KEY
 
-const MODEL = process.env.GEMINI_MODEL || "gemini-2.5-flash";
+const MODEL = process.env.GEMINI_MODEL || "gemini-3.5-flash";
 
 const VISION_PROMPT = `Sos un nutricionista experto en estimación visual de porciones.
 Analizá la foto de esta comida y estimá los alimentos presentes, su porción en gramos y sus macronutrientes.
@@ -61,7 +61,7 @@ export const handler = async (event) => {
         ],
         generationConfig: {
           responseMimeType: "application/json",
-          temperature: 0.2,
+          thinkingConfig: { thinkingLevel: "minimal" },
         },
       }),
     });
@@ -73,12 +73,16 @@ export const handler = async (event) => {
       return { statusCode: 502, body: JSON.stringify({ error: `Gemini: ${msg}` }) };
     }
 
-    const text = data?.candidates?.[0]?.content?.parts?.map((p) => p.text || "").join("") || "";
+    const text =
+      data?.candidates?.[0]?.content?.parts
+        ?.filter((p) => !p.thought)
+        .map((p) => p.text || "")
+        .join("") || "";
+
     if (!text) {
       return { statusCode: 502, body: JSON.stringify({ error: "Gemini respondió vacío" }) };
     }
 
-    // responseMimeType garantiza JSON, pero validamos igual
     let result;
     try {
       result = JSON.parse(text);
