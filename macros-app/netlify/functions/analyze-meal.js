@@ -61,6 +61,29 @@ export const handler = async (event) => {
         ],
         generationConfig: {
           responseMimeType: "application/json",
+          responseJsonSchema: {
+            type: "object",
+            properties: {
+              alimentos: {
+                type: "array",
+                items: {
+                  type: "object",
+                  properties: {
+                    nombre: { type: "string" },
+                    porcion_g: { type: "number" },
+                    proteina: { type: "number" },
+                    carbs: { type: "number" },
+                    grasas: { type: "number" },
+                    kcal: { type: "number" },
+                  },
+                  required: ["nombre", "porcion_g", "proteina", "carbs", "grasas", "kcal"],
+                },
+              },
+              confianza: { type: "number" },
+              comentario: { type: "string" },
+            },
+            required: ["alimentos", "confianza", "comentario"],
+          },
           thinkingConfig: { thinkingLevel: "minimal" },
         },
       }),
