@@ -53,16 +53,25 @@ async function prepareImage(file, maxDim = 1024) {
 }
 
 async function analyzePhoto(base64, mediaType) {
-  const response = await fetch("/.netlify/functions/analyze-meal", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ image: base64, mediaType }),
-  });
-  const data = await response.json();
-  if (!response.ok || data.error) {
-    throw new Error(data.error || `Error HTTP ${response.status}`);
+  let lastError;
+  for (let intento = 1; intento <= 2; intento++) {
+    try {
+      const response = await fetch("/.netlify/functions/analyze-meal", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ image: base64, mediaType }),
+      });
+      const data = await response.json();
+      if (!response.ok || data.error) {
+        throw new Error(data.error || `Error HTTP ${response.status}`);
+      }
+      return data;
+    } catch (err) {
+      lastError = err;
+      if (intento < 2) await new Promise((r) => setTimeout(r, 1500));
+    }
   }
-  return data;
+  throw lastError;
 }
 
 const round1 = (n) => Math.round(n * 10) / 10;
