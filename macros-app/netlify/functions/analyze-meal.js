@@ -20,7 +20,7 @@ Reglas:
 - Si un alimento es ambiguo, elegí la interpretación más común en Argentina.
 - Si la imagen no contiene comida, devolvé {"alimentos": [], "confianza": 0, "comentario": "No se detectó comida en la imagen"}.`;
 
-exports.handler = async (event) => {
+export const handler = async (event) => {
   if (event.httpMethod !== "POST") {
     return { statusCode: 405, body: JSON.stringify({ error: "Method not allowed" }) };
   }
