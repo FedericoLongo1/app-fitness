@@ -3,17 +3,28 @@ import { supabase } from "./supabase.js";
 
 export default function Auth() {
   const [email, setEmail] = useState("");
-  const [estado, setEstado] = useState("idle"); // idle | enviando | enviado | error
+  const [codigo, setCodigo] = useState("");
+  const [estado, setEstado] = useState("idle"); // idle | enviando | esperando_codigo | verificando | error
 
-  async function enviarLink(e) {
+  async function enviarCodigo(e) {
     e.preventDefault();
     if (!email.trim()) return;
     setEstado("enviando");
-    const { error } = await supabase.auth.signInWithOtp({
+    const { error } = await supabase.auth.signInWithOtp({ email: email.trim() });
+    setEstado(error ? "error" : "esperando_codigo");
+  }
+
+  async function verificarCodigo(e) {
+    e.preventDefault();
+    if (!codigo.trim()) return;
+    setEstado("verificando");
+    const { error } = await supabase.auth.verifyOtp({
       email: email.trim(),
-      options: { emailRedirectTo: window.location.origin },
+      token: codigo.trim(),
+      type: "email",
     });
-    setEstado(error ? "error" : "enviado");
+    if (error) setEstado("error");
+    // si es correcto, App.jsx detecta la sesión solo via onAuthStateChange
   }
 
   return (
@@ -22,11 +33,27 @@ export default function Auth() {
         <span style={S.logoTop}>REGISTRO DE</span>
         <span style={S.logoMain}>MACROS</span>
       </div>
-      {estado === "enviado" ? (
-        <p style={S.msg}>Te mandamos un link a <b>{email}</b>. Abrilo desde este dispositivo para entrar.</p>
+      {estado === "esperando_codigo" || estado === "verificando" ? (
+        <form onSubmit={verificarCodigo} style={S.form}>
+          <p style={S.hint}>Te mandamos un código a <b>{email}</b>. Ingresalo acá.</p>
+          <input
+            style={S.input}
+            type="text"
+            inputMode="numeric"
+            placeholder="123456"
+            value={codigo}
+            onChange={(e) => setCodigo(e.target.value)}
+            autoFocus
+            required
+          />
+          <button style={S.btn} disabled={estado === "verificando"}>
+            {estado === "verificando" ? "Verificando…" : "Ingresar"}
+          </button>
+          {estado === "error" && <p style={S.error}>Código incorrecto o vencido. Probá de nuevo.</p>}
+        </form>
       ) : (
-        <form onSubmit={enviarLink} style={S.form}>
-          <p style={S.hint}>Ingresá tu email para recibir un link de acceso.</p>
+        <form onSubmit={enviarCodigo} style={S.form}>
+          <p style={S.hint}>Ingresá tu email para recibir un código de acceso.</p>
           <input
             style={S.input}
             type="email"
@@ -37,9 +64,9 @@ export default function Auth() {
             required
           />
           <button style={S.btn} disabled={estado === "enviando"}>
-            {estado === "enviando" ? "Enviando…" : "Enviar link"}
+            {estado === "enviando" ? "Enviando…" : "Enviar código"}
           </button>
-          {estado === "error" && <p style={S.error}>Error al enviar el link. Probá de nuevo.</p>}
+          {estado === "error" && <p style={S.error}>Error al enviar el código. Probá de nuevo.</p>}
         </form>
       )}
     </div>

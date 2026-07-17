@@ -47,10 +47,10 @@ export default function Coach({ userId }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [userId]);
 
-  function cambiarObjetivo(objetivo) {
+  async function cambiarObjetivo(objetivo) {
     const next = { ...targets, objetivo };
     setTargets(next);
-    saveTargets(userId, next);
+    await saveTargets(userId, next);
     cargarTodo();
   }
 
