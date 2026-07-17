@@ -3,25 +3,16 @@ import { supabase } from "./supabase.js";
 
 export default function Auth() {
   const [email, setEmail] = useState("");
-  const [codigo, setCodigo] = useState("");
-  const [estado, setEstado] = useState("idle"); // idle | enviando | esperando_codigo | verificando | error
+  const [password, setPassword] = useState("");
+  const [estado, setEstado] = useState("idle"); // idle | entrando | error
 
-  async function enviarCodigo(e) {
+  async function entrar(e) {
     e.preventDefault();
-    if (!email.trim()) return;
-    setEstado("enviando");
-    const { error } = await supabase.auth.signInWithOtp({ email: email.trim() });
-    setEstado(error ? "error" : "esperando_codigo");
-  }
-
-  async function verificarCodigo(e) {
-    e.preventDefault();
-    if (!codigo.trim()) return;
-    setEstado("verificando");
-    const { error } = await supabase.auth.verifyOtp({
+    if (!email.trim() || !password) return;
+    setEstado("entrando");
+    const { error } = await supabase.auth.signInWithPassword({
       email: email.trim(),
-      token: codigo.trim(),
-      type: "email",
+      password,
     });
     if (error) setEstado("error");
     // si es correcto, App.jsx detecta la sesión solo via onAuthStateChange
@@ -33,42 +24,30 @@ export default function Auth() {
         <span style={S.logoTop}>REGISTRO DE</span>
         <span style={S.logoMain}>MACROS</span>
       </div>
-      {estado === "esperando_codigo" || estado === "verificando" ? (
-        <form onSubmit={verificarCodigo} style={S.form}>
-          <p style={S.hint}>Te mandamos un código a <b>{email}</b>. Ingresalo acá.</p>
-          <input
-            style={S.input}
-            type="text"
-            inputMode="numeric"
-            placeholder="123456"
-            value={codigo}
-            onChange={(e) => setCodigo(e.target.value)}
-            autoFocus
-            required
-          />
-          <button style={S.btn} disabled={estado === "verificando"}>
-            {estado === "verificando" ? "Verificando…" : "Ingresar"}
-          </button>
-          {estado === "error" && <p style={S.error}>Código incorrecto o vencido. Probá de nuevo.</p>}
-        </form>
-      ) : (
-        <form onSubmit={enviarCodigo} style={S.form}>
-          <p style={S.hint}>Ingresá tu email para recibir un código de acceso.</p>
-          <input
-            style={S.input}
-            type="email"
-            placeholder="tu@email.com"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            autoFocus
-            required
-          />
-          <button style={S.btn} disabled={estado === "enviando"}>
-            {estado === "enviando" ? "Enviando…" : "Enviar código"}
-          </button>
-          {estado === "error" && <p style={S.error}>Error al enviar el código. Probá de nuevo.</p>}
-        </form>
-      )}
+      <form onSubmit={entrar} style={S.form}>
+        <p style={S.hint}>Ingresá tu email y contraseña.</p>
+        <input
+          style={S.input}
+          type="email"
+          placeholder="tu@email.com"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          autoFocus
+          required
+        />
+        <input
+          style={S.input}
+          type="password"
+          placeholder="Contraseña"
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+          required
+        />
+        <button style={S.btn} disabled={estado === "entrando"}>
+          {estado === "entrando" ? "Entrando…" : "Entrar"}
+        </button>
+        {estado === "error" && <p style={S.error}>Email o contraseña incorrectos.</p>}
+      </form>
     </div>
   );
 }
