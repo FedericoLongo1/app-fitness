@@ -20,13 +20,19 @@ export default function Pesas({ userId }) {
 
   useEffect(() => {
     if (!userId) return;
-    loadTemplates(userId).then(setTemplates);
-    loadWorkouts(userId).then((ws) => {
+    (async () => {
+      const ts = await loadTemplates(userId);
+      setTemplates(ts);
+      const ws = await loadWorkouts(userId);
       if (ws.length) {
         const w = ws[ws.length - 1];
         setWorkout(w);
+        if (w.template_id) {
+          const t = ts.find((x) => x.id === w.template_id);
+          if (t) setEjerciciosSesion((t.ejercicios || []).map((e) => e.ejercicio_id));
+        }
       }
-    });
+    })();
   }, [userId]);
 
   useEffect(() => {
