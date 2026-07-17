@@ -74,3 +74,35 @@ export async function deleteMeal(userId, id, fecha = todayKey()) {
   const actual = loadJSON(cacheKey, []);
   saveJSON(cacheKey, actual.filter((m) => m.id !== id));
 }
+
+// Comidas de un rango de fechas (para el coach). Sin cache.
+export async function loadMealsRange(userId, desde, hasta) {
+  const { data, error } = await supabase
+    .from("meals")
+    .select("*")
+    .eq("user_id", userId)
+    .gte("fecha", desde)
+    .lte("fecha", hasta);
+  return error || !data ? [] : data;
+}
+
+// ─── Peso corporal ─────────────────────────────────────────────────
+export async function loadBodyMetrics(userId, desde, hasta) {
+  const { data, error } = await supabase
+    .from("body_metrics")
+    .select("*")
+    .eq("user_id", userId)
+    .gte("fecha", desde)
+    .lte("fecha", hasta)
+    .order("fecha", { ascending: true });
+  return error || !data ? [] : data;
+}
+
+export async function addBodyMetric(userId, { fecha = todayKey(), peso }) {
+  const { data, error } = await supabase
+    .from("body_metrics")
+    .insert({ user_id: userId, fecha, peso })
+    .select()
+    .single();
+  return error || !data ? { id: Date.now(), fecha, peso } : data;
+}

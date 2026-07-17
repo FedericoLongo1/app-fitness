@@ -2,12 +2,14 @@ import React, { useState } from "react";
 import Pesas from "./Pesas.jsx";
 import Running from "./Running.jsx";
 import Progreso from "./Progreso.jsx";
+import Coach from "./Coach.jsx";
 import { red, card, textDim, oswald } from "./theme.js";
 
 const SECCIONES = [
   { id: "pesas", label: "Pesas" },
   { id: "running", label: "Running" },
   { id: "progreso", label: "Progreso" },
+  { id: "coach", label: "Coach" },
 ];
 
 export default function Entrenos({ userId }) {
@@ -25,6 +27,7 @@ export default function Entrenos({ userId }) {
       {seccion === "pesas" && <Pesas userId={userId} />}
       {seccion === "running" && <Running userId={userId} />}
       {seccion === "progreso" && <Progreso userId={userId} />}
+      {seccion === "coach" && <Coach userId={userId} />}
     </>
   );
 }

@@ -10,6 +10,7 @@ export default function Running({ userId }) {
   const [distancia, setDistancia] = useState("");
   const [min, setMin] = useState("");
   const [seg, setSeg] = useState("");
+  const [error, setError] = useState("");
 
   useEffect(() => {
     if (!userId) return;
@@ -17,11 +18,17 @@ export default function Running({ userId }) {
   }, [userId]);
 
   const distanciaKm = Number(distancia) || 0;
-  const tiempoSeg = (Number(min) || 0) * 60 + (Number(seg) || 0);
+  const segParciales = Number(seg) || 0;
+  const tiempoSeg = (Number(min) || 0) * 60 + segParciales;
   const paceLive = calcularPace(distanciaKm, tiempoSeg);
 
   async function guardar() {
-    if (!distanciaKm || !tiempoSeg) return;
+    if (!distancia || !Number.isFinite(distanciaKm) || distanciaKm <= 0) return setError("La distancia tiene que ser mayor a 0.");
+    if (distanciaKm > 300) return setError("Esa distancia parece un error de carga (más de 300km).");
+    if (segParciales < 0 || segParciales > 59) return setError("Los segundos van de 0 a 59.");
+    if (!tiempoSeg || tiempoSeg <= 0) return setError("Cargá el tiempo de la carrera.");
+    if (!fecha) return setError("Elegí una fecha.");
+    setError("");
     const nueva = await addRun(userId, { fecha, distancia_km: distanciaKm, tiempo_seg: tiempoSeg });
     setRuns((prev) => [nueva, ...prev]);
     setDistancia("");
@@ -46,20 +53,21 @@ export default function Running({ userId }) {
         </div>
         <div style={S.row}>
           <label style={S.label}>Distancia</label>
-          <input style={S.input} type="number" value={distancia} placeholder="0.0"
-            onChange={(e) => setDistancia(e.target.value)} aria-label="Distancia en km" />
+          <input style={S.input} type="number" min="0" step="0.1" value={distancia} placeholder="0.0"
+            onChange={(e) => { setDistancia(e.target.value); setError(""); }} aria-label="Distancia en km" />
           <span style={S.unit}>km</span>
         </div>
         <div style={S.row}>
           <label style={S.label}>Tiempo</label>
-          <input style={S.inputSmall} type="number" value={min} placeholder="0"
-            onChange={(e) => setMin(e.target.value)} aria-label="Minutos" />
+          <input style={S.inputSmall} type="number" min="0" step="1" value={min} placeholder="0"
+            onChange={(e) => { setMin(e.target.value); setError(""); }} aria-label="Minutos" />
           <span style={S.unit}>min</span>
-          <input style={S.inputSmall} type="number" value={seg} placeholder="0"
-            onChange={(e) => setSeg(e.target.value)} aria-label="Segundos" />
+          <input style={S.inputSmall} type="number" min="0" max="59" step="1" value={seg} placeholder="0"
+            onChange={(e) => { setSeg(e.target.value); setError(""); }} aria-label="Segundos" />
           <span style={S.unit}>seg</span>
         </div>
         {paceLive && <div style={S.previa}>Ritmo: <b style={S.hint}>{paceLive}</b></div>}
+        {error && <p style={S.errorText}>{error}</p>}
         <button style={S.confirmBtn} onClick={guardar}>Guardar carrera</button>
       </section>
 
@@ -97,6 +105,7 @@ const styles = {
   unit: { fontSize: 13, color: textDim },
   previa: { fontSize: 13, color: "#c9c6c0", padding: "10px 0", borderTop: `1px solid ${border}`, marginBottom: 10 },
   hint: { color: red, fontStyle: "normal" },
+  errorText: { fontSize: 12, color: "#ff8a75", margin: "0 0 10px" },
   confirmBtn: { width: "100%", padding: "12px 0", background: red, border: "none", color: "#fff", borderRadius: 12, fontFamily: oswald, letterSpacing: 2, fontSize: 14, fontWeight: 600, cursor: "pointer" },
   logSection: { marginTop: 6 },
   logTitle: { fontFamily: oswald, fontSize: 13, letterSpacing: 3, color: textDim, margin: "0 0 10px" },

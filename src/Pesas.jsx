@@ -142,6 +142,7 @@ function EjercicioCard({ userId, ejercicio, sets, rm1, onAgregarSerie, onElimina
   const [reps, setReps] = useState("");
   const [peso, setPeso] = useState("");
   const [rpe, setRpe] = useState("");
+  const [error, setError] = useState("");
   const [ultimaSesion, setUltimaSesion] = useState([]); // series de la última vez que se hizo este ejercicio, solo como recordatorio
 
   useEffect(() => {
@@ -161,8 +162,12 @@ function EjercicioCard({ userId, ejercicio, sets, rm1, onAgregarSerie, onElimina
   function agregar() {
     const r = Number(reps);
     const p = Number(peso);
-    if (!r || !p) return;
-    onAgregarSerie({ reps: r, peso: p, rpe: rpe ? Number(rpe) : null });
+    const rp = rpe ? Number(rpe) : null;
+    if (!reps || !Number.isFinite(r) || r <= 0) return setError("Las reps tienen que ser un número mayor a 0.");
+    if (!peso || !Number.isFinite(p) || p <= 0) return setError("El peso tiene que ser un número mayor a 0.");
+    if (rp !== null && (!Number.isFinite(rp) || rp < 1 || rp > 10)) return setError("El RPE va de 1 a 10.");
+    setError("");
+    onAgregarSerie({ reps: r, peso: p, rpe: rp });
     setReps("");
     setPeso("");
     setRpe("");
@@ -194,10 +199,14 @@ function EjercicioCard({ userId, ejercicio, sets, rm1, onAgregarSerie, onElimina
           <button style={S.removeBtn} onClick={() => onEliminarSerie(s.id)} aria-label="Eliminar serie">✕</button>
         </div>
       ))}
+      {error && <p style={S.errorText}>{error}</p>}
       <div style={S.setForm}>
-        <input style={S.setInput} type="number" value={peso} placeholder={pesoPh} onChange={(e) => setPeso(e.target.value)} aria-label="Peso" />
-        <input style={S.setInput} type="number" value={reps} placeholder={repsPh} onChange={(e) => setReps(e.target.value)} aria-label="Reps" />
-        <input style={S.setInput} type="number" value={rpe} placeholder="RPE" onChange={(e) => setRpe(e.target.value)} aria-label="RPE" />
+        <input style={S.setInput} type="number" min="0" step="0.5" value={peso} placeholder={pesoPh}
+          onChange={(e) => { setPeso(e.target.value); setError(""); }} aria-label="Peso" />
+        <input style={S.setInput} type="number" min="1" step="1" value={reps} placeholder={repsPh}
+          onChange={(e) => { setReps(e.target.value); setError(""); }} aria-label="Reps" />
+        <input style={S.setInput} type="number" min="1" max="10" step="0.5" value={rpe} placeholder="RPE"
+          onChange={(e) => { setRpe(e.target.value); setError(""); }} aria-label="RPE" />
         <button style={S.addSetBtn} onClick={agregar}>+</button>
       </div>
     </section>
@@ -242,6 +251,7 @@ const styles = {
   sesionTitulo: { fontFamily: oswald, fontSize: 16, letterSpacing: 1, textTransform: "uppercase" },
   finBtn: { background: "transparent", border: `1px solid #3a3a3e`, color: textDim, borderRadius: 10, padding: "6px 12px", fontSize: 12, cursor: "pointer" },
   ejCard: { background: card, borderRadius: 16, padding: 14, marginBottom: 12 },
+  errorText: { fontSize: 12, color: "#ff8a75", margin: "8px 0 0" },
   ejHead: { display: "flex", justifyContent: "space-between", alignItems: "baseline", marginBottom: 4 },
   ejNombre: { fontSize: 14, fontWeight: 600 },
   ejRm: { fontSize: 12, color: red },
