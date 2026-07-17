@@ -142,12 +142,21 @@ function EjercicioCard({ userId, ejercicio, sets, rm1, onAgregarSerie, onElimina
   const [reps, setReps] = useState("");
   const [peso, setPeso] = useState("");
   const [rpe, setRpe] = useState("");
-  const [ultima, setUltima] = useState(null); // última serie registrada (sesión previa), solo como recordatorio
+  const [ultimaSesion, setUltimaSesion] = useState([]); // series de la última vez que se hizo este ejercicio, solo como recordatorio
 
   useEffect(() => {
-    loadRecentSets(userId, ejercicio.id, 1).then((r) => setUltima(r[0] || null));
+    loadRecentSets(userId, ejercicio.id, 20).then((recientes) => {
+      if (!recientes.length) return setUltimaSesion([]);
+      const ultimoWorkoutId = recientes[0].workout_id;
+      const deEsaSesion = recientes
+        .filter((s) => s.workout_id === ultimoWorkoutId)
+        .sort((a, b) => (a.orden ?? 0) - (b.orden ?? 0));
+      setUltimaSesion(deEsaSesion);
+    });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [ejercicio.id]);
+
+  const ultima = ultimaSesion[ultimaSesion.length - 1] || null;
 
   function agregar() {
     const r = Number(reps);
@@ -169,8 +178,15 @@ function EjercicioCard({ userId, ejercicio, sets, rm1, onAgregarSerie, onElimina
         <span style={S.ejNombre}>{ejercicio.nombre}</span>
         {rm1 > 0 && <span style={S.ejRm}>1RM ~{Math.round(rm1)}kg</span>}
       </div>
-      {ultima && (
-        <p style={S.ultimaHint}>Última vez: {ultima.peso}kg × {ultima.reps}{ultima.rpe ? ` · RPE ${ultima.rpe}` : ""}</p>
+      {ultimaSesion.length > 0 && (
+        <p style={S.ultimaHint}>
+          Última vez: {ultimaSesion.map((s, i) => (
+            <span key={s.id}>
+              {i > 0 && " · "}
+              {s.peso}kg × {s.reps}{s.rpe ? ` (RPE ${s.rpe})` : ""}
+            </span>
+          ))}
+        </p>
       )}
       {sets.map((s) => (
         <div key={s.id} style={S.setRow}>
