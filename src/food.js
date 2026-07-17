@@ -21,7 +21,34 @@ export const FRECUENTES = [
   { nombre: "Banana", proteina: 1.1, carbs: 23, grasas: 0.3, kcal: 89 },
   { nombre: "Manzana", proteina: 0.3, carbs: 14, grasas: 0.2, kcal: 52 },
   { nombre: "Palta", proteina: 2, carbs: 9, grasas: 15, kcal: 160 },
+
+  // Cortes de carne argentinos (cocidos, valores aproximados por 100g)
+  { nombre: "Asado (costilla, cocido)", proteina: 26, carbs: 0, grasas: 22, kcal: 300 },
+  { nombre: "Vacío (cocido)", proteina: 27, carbs: 0, grasas: 18, kcal: 260 },
+  { nombre: "Matambre (cocido)", proteina: 25, carbs: 0, grasas: 20, kcal: 270 },
+  { nombre: "Bife de chorizo (cocido)", proteina: 28, carbs: 0, grasas: 16, kcal: 250 },
+  { nombre: "Bife de lomo (cocido)", proteina: 29, carbs: 0, grasas: 9, kcal: 200 },
+  { nombre: "Nalga (cocida)", proteina: 30, carbs: 0, grasas: 6, kcal: 180 },
+  { nombre: "Peceto (cocido)", proteina: 30, carbs: 0, grasas: 5, kcal: 170 },
+  { nombre: "Cuadril (cocido)", proteina: 29, carbs: 0, grasas: 8, kcal: 190 },
+  { nombre: "Colita de cuadril (cocida)", proteina: 28, carbs: 0, grasas: 10, kcal: 210 },
+  { nombre: "Entraña (cocida)", proteina: 27, carbs: 0, grasas: 20, kcal: 270 },
+  { nombre: "Bola de lomo (cocida)", proteina: 30, carbs: 0, grasas: 6, kcal: 175 },
+  { nombre: "Osobuco (cocido)", proteina: 28, carbs: 0, grasas: 8, kcal: 190 },
+  { nombre: "Carne picada / molida (cocida)", proteina: 26, carbs: 0, grasas: 17, kcal: 250 },
+  { nombre: "Milanesa de carne (frita)", proteina: 22, carbs: 12, grasas: 15, kcal: 260 },
+  { nombre: "Pollo pata/muslo (cocido, con piel)", proteina: 26, carbs: 0, grasas: 11, kcal: 210 },
+  { nombre: "Chorizo (parrilla)", proteina: 15, carbs: 2, grasas: 28, kcal: 320 },
+  { nombre: "Morcilla", proteina: 10, carbs: 5, grasas: 20, kcal: 250 },
 ];
+
+// Búsqueda local dentro de FRECUENTES (sin acentos, case-insensitive)
+const sinAcentos = (s) => s.normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase();
+export function buscarLocal(query) {
+  const q = sinAcentos(query.trim());
+  if (!q) return [];
+  return FRECUENTES.filter((f) => sinAcentos(f.nombre).includes(q));
+}
 
 // ─── Cliente Open Food Facts (gratis, sin API key) ────────────────
 const OFF_BASE = "https://world.openfoodfacts.org";

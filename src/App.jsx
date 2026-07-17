@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { FRECUENTES, buscarPorCodigo, buscarPorTexto } from "./food.js";
+import { FRECUENTES, buscarPorCodigo, buscarPorTexto, buscarLocal } from "./food.js";
 import Scanner from "./Scanner.jsx";
 import Auth from "./Auth.jsx";
 import { supabase } from "./supabase.js";
@@ -252,12 +252,19 @@ function BuscarPanel({ onElegir, onClose }) {
     e?.preventDefault?.();
     if (q.trim().length < 2) return;
     setEstado("buscando");
+    const locales = buscarLocal(q);
     try {
-      const r = await buscarPorTexto(q.trim());
+      const online = await buscarPorTexto(q.trim());
+      const r = [...locales, ...online];
       setResultados(r);
       setEstado(r.length ? "ok" : "vacio");
     } catch {
-      setEstado("error");
+      if (locales.length) {
+        setResultados(locales);
+        setEstado("ok");
+      } else {
+        setEstado("error");
+      }
     }
   }
 
