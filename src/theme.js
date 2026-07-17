@@ -1,0 +1,9 @@
+export const red = "#e8381a";
+export const bg = "#111113";
+export const card = "#1a1a1e";
+export const border = "#2a2a2e";
+export const text = "#f2f0ec";
+export const textDim = "#8a8781";
+export const textFaint = "#6a675f";
+export const oswald = "'Oswald',sans-serif";
+export const inter = "'Inter',-apple-system,'Segoe UI',sans-serif";

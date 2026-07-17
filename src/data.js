@@ -1,7 +1,7 @@
 import { supabase } from "./supabase.js";
 
 // ─── Cache local (fallback offline) ───────────────────────────────
-function loadJSON(key, fallback) {
+export function loadJSON(key, fallback) {
   try {
     const raw = localStorage.getItem(key);
     return raw ? JSON.parse(raw) : fallback;
@@ -9,7 +9,7 @@ function loadJSON(key, fallback) {
     return fallback;
   }
 }
-function saveJSON(key, value) {
+export function saveJSON(key, value) {
   try {
     localStorage.setItem(key, JSON.stringify(value));
   } catch {
