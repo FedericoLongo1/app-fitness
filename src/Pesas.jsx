@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import Panel from "./Panel.jsx";
 import SeleccionEjerciciosPanel from "./SeleccionEjerciciosPanel.jsx";
+import EmpezarRutinaPanel from "./EmpezarRutinaPanel.jsx";
 import { EJERCICIOS, GRUPOS_MUSCULARES, ejercicioPorId } from "./ejercicios.js";
 import {
   loadTemplates, saveTemplate,
@@ -16,7 +17,7 @@ export default function Pesas({ userId }) {
   const [workout, setWorkout] = useState(null); // sesión activa de hoy
   const [sets, setSets] = useState([]);
   const [ejerciciosSesion, setEjerciciosSesion] = useState([]); // ids de ejercicios en la sesión
-  const [vista, setVista] = useState(null); // null | "armar-rutina" | "agregar-ejercicio"
+  const [vista, setVista] = useState(null); // null | "armar-rutina" | "empezar-rutina" | "agregar-ejercicio"
 
   useEffect(() => {
     if (!userId) return;
@@ -45,19 +46,21 @@ export default function Pesas({ userId }) {
   }, [workout, userId]);
 
   async function iniciarRutina({ ejercicioIds, nombrePlantilla }) {
-    let templateId = null;
-    let nombre = null;
-    if (nombrePlantilla) {
-      const ejercicios = ejercicioIds.map((id, i) => ({ ejercicio_id: id, orden: i }));
-      const t = await saveTemplate(userId, { nombre: nombrePlantilla, ejercicios });
-      setTemplates((prev) => [...prev, t]);
-      templateId = t.id;
-      nombre = t.nombre;
-    }
-    const w = await createWorkout(userId, { template_id: templateId, nombre });
+    const ejercicios = ejercicioIds.map((id, i) => ({ ejercicio_id: id, orden: i }));
+    const t = await saveTemplate(userId, { nombre: nombrePlantilla, ejercicios });
+    setTemplates((prev) => [...prev, t]);
+    const w = await createWorkout(userId, { template_id: t.id, nombre: t.nombre });
     setWorkout(w);
     setSets([]);
     setEjerciciosSesion(ejercicioIds);
+    setVista(null);
+  }
+
+  async function empezarDesdePlantilla(t) {
+    const w = await createWorkout(userId, { template_id: t.id, nombre: t.nombre });
+    setWorkout(w);
+    setSets([]);
+    setEjerciciosSesion((t.ejercicios || []).map((e) => e.ejercicio_id));
     setVista(null);
   }
 
@@ -82,12 +85,18 @@ export default function Pesas({ userId }) {
     return (
       <>
         <section style={S.actions}>
-          <button style={{ ...S.actionBtn, ...S.actionPrimary }} onClick={() => setVista("armar-rutina")}>
+          <button style={{ ...S.actionBtn, ...S.actionPrimary }} onClick={() => setVista("empezar-rutina")}>
+            EMPEZAR RUTINA
+          </button>
+          <button style={S.actionBtn} onClick={() => setVista("armar-rutina")}>
             ARMAR RUTINA
           </button>
         </section>
+        {vista === "empezar-rutina" && (
+          <EmpezarRutinaPanel templates={templates} onElegir={empezarDesdePlantilla} onClose={() => setVista(null)} />
+        )}
         {vista === "armar-rutina" && (
-          <SeleccionEjerciciosPanel templates={templates} onIniciar={iniciarRutina} onClose={() => setVista(null)} />
+          <SeleccionEjerciciosPanel onIniciar={iniciarRutina} onClose={() => setVista(null)} />
         )}
       </>
     );
