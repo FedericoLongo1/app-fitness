@@ -4,8 +4,12 @@ create table if not exists targets (
   user_id uuid primary key references auth.users(id) on delete cascade,
   proteina numeric not null default 160,
   kcal numeric not null default 2600,
+  objetivo text not null default 'mantenimiento',
   updated_at timestamptz not null default now()
 );
+
+-- Etapa 4: si la tabla ya existía sin esta columna
+alter table targets add column if not exists objetivo text not null default 'mantenimiento';
 
 create table if not exists meals (
   id bigint generated always as identity primary key,

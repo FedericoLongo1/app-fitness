@@ -21,10 +21,10 @@ export const todayKey = () => new Date().toISOString().slice(0, 10);
 
 // ─── Targets ───────────────────────────────────────────────────────
 export async function loadTargets(userId) {
-  const cached = loadJSON("targets", { proteina: 160, kcal: 2600 });
+  const cached = loadJSON("targets", { proteina: 160, kcal: 2600, objetivo: "mantenimiento" });
   const { data, error } = await supabase
     .from("targets")
-    .select("proteina, kcal")
+    .select("proteina, kcal, objetivo")
     .eq("user_id", userId)
     .maybeSingle();
   if (error || !data) {

@@ -47,6 +47,12 @@ export function analizarProteina(diasConDatos, objetivoProteina) {
   return null;
 }
 
+const NOMBRE_OBJETIVO = {
+  "ganar-musculo": "ganar músculo",
+  "perder-grasa": "perder grasa",
+  mantenimiento: "mantenimiento",
+};
+
 export function analizarCalorias(diasConDatos, objetivoKcal) {
   if (diasConDatos.length < 3) return null;
   const promedio = diasConDatos.reduce((s, d) => s + d.kcal, 0) / diasConDatos.length;
@@ -62,8 +68,9 @@ export function analizarCalorias(diasConDatos, objetivoKcal) {
   return null;
 }
 
-// Tendencia de peso con media móvil simple (primera mitad vs segunda mitad del período).
-export function analizarTendenciaPeso(bodyMetrics) {
+// Tendencia de peso con media móvil simple (primera mitad vs segunda mitad del período),
+// interpretada según el objetivo actual (ganar músculo / perder grasa / mantenimiento).
+export function analizarTendenciaPeso(bodyMetrics, objetivo = "mantenimiento") {
   const ordenado = [...bodyMetrics].sort((a, b) => a.fecha.localeCompare(b.fecha));
   if (ordenado.length < 6) return null;
   const mitad = Math.floor(ordenado.length / 2);
@@ -71,18 +78,41 @@ export function analizarTendenciaPeso(bodyMetrics) {
   const antes = media(ordenado.slice(0, mitad));
   const despues = media(ordenado.slice(mitad));
   const delta = despues - antes;
-  if (Math.abs(delta) < 0.3) {
-    return {
-      tipo: "peso",
-      severidad: "info",
-      mensaje: `Peso estancado en las últimas semanas (variación de ${delta.toFixed(1)}kg). Si tu objetivo es subir o bajar, ajustá las calorías un ±10% en vez de mantener lo mismo.`,
-    };
+  const estancado = Math.abs(delta) < 0.3;
+  const nombreObjetivo = NOMBRE_OBJETIVO[objetivo] || objetivo;
+  const signo = `${delta > 0 ? "+" : ""}${delta.toFixed(1)}kg`;
+
+  if (objetivo === "ganar-musculo") {
+    if (estancado) {
+      return { tipo: "peso", severidad: "aviso", mensaje: `Peso estancado (${signo}) mientras el objetivo es ganar músculo. Subí las calorías un ~10% (más carbo y proteína) para volver a una ganancia gradual.` };
+    }
+    if (delta < 0) {
+      return { tipo: "peso", severidad: "aviso", mensaje: `Estás bajando de peso (${signo}) con el objetivo de ganar músculo. Es probable que falten calorías: subí la ingesta antes de que se pierda masa muscular.` };
+    }
+    if (delta > 1.5) {
+      return { tipo: "peso", severidad: "info", mensaje: `Subiendo bastante rápido (${signo} en el período). Para minimizar grasa ganada, bajá un poco las calorías, apuntá a una suba más gradual.` };
+    }
+    return { tipo: "peso", severidad: "info", mensaje: `Peso subiendo de forma gradual (${signo}), en línea con el objetivo de ganar músculo. Seguí así.` };
   }
-  return {
-    tipo: "peso",
-    severidad: "info",
-    mensaje: `Peso ${delta > 0 ? "subiendo" : "bajando"} (${delta > 0 ? "+" : ""}${delta.toFixed(1)}kg en el período). Seguí así si es lo buscado, o ajustá calorías si no.`,
-  };
+
+  if (objetivo === "perder-grasa") {
+    if (estancado) {
+      return { tipo: "peso", severidad: "aviso", mensaje: `Peso estancado (${signo}) mientras el objetivo es perder grasa. Bajá las calorías un ~10% en vez de mantener lo mismo.` };
+    }
+    if (delta > 0) {
+      return { tipo: "peso", severidad: "aviso", mensaje: `Estás subiendo de peso (${signo}) con el objetivo de perder grasa. Revisá las porciones o bajá un poco las calorías.` };
+    }
+    if (delta < -1.5) {
+      return { tipo: "peso", severidad: "info", mensaje: `Bajando bastante rápido (${signo} en el período). Una pérdida muy agresiva suele costar músculo, considerá subir un poco las calorías para desacelerar.` };
+    }
+    return { tipo: "peso", severidad: "info", mensaje: `Peso bajando de forma gradual (${signo}), en línea con el objetivo de perder grasa. Seguí así.` };
+  }
+
+  // mantenimiento
+  if (estancado) {
+    return { tipo: "peso", severidad: "info", mensaje: `Peso estable (${signo}), acorde al objetivo de mantenimiento.` };
+  }
+  return { tipo: "peso", severidad: "info", mensaje: `Peso ${delta > 0 ? "subiendo" : "bajando"} (${signo}) pese al objetivo de mantenimiento (${nombreObjetivo}). Ajustá las calorías un ~5-10% en la dirección contraria para estabilizarlo.` };
 }
 
 // Mismo peso máximo en un ejercicio durante 3 semanas seguidas.
@@ -136,7 +166,7 @@ export function generarResumenSemana({ meals, targets, bodyMetrics, sets, ejerci
   const resultados = [
     analizarProteina(dias, targets.proteina),
     analizarCalorias(dias, targets.kcal),
-    analizarTendenciaPeso(bodyMetrics),
+    analizarTendenciaPeso(bodyMetrics, targets.objetivo),
     ...analizarProgresionCargas(sets, ejercicios),
     analizarVolumenRunning(runs),
   ];
