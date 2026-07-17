@@ -1,8 +1,8 @@
 // ─── Alimentos frecuentes (macros por 100g) ───────────────────────
 // Valores estándar aproximados. Editables al cargar la porción.
 export const FRECUENTES = [
-  { nombre: "Pechuga de pollo (cocida)", proteina: 31, carbs: 0, grasas: 3.6, kcal: 165 },
-  { nombre: "Carne vacuna magra (cocida)", proteina: 26, carbs: 0, grasas: 15, kcal: 250 },
+  { nombre: "Pechuga de pollo (cruda)", proteina: 22.5, carbs: 0, grasas: 2.6, kcal: 120 },
+  { nombre: "Carne vacuna magra (cruda)", proteina: 21.5, carbs: 0, grasas: 6, kcal: 145 },
   { nombre: "Huevo entero", proteina: 13, carbs: 1.1, grasas: 11, kcal: 155 },
   { nombre: "Clara de huevo", proteina: 11, carbs: 0.7, grasas: 0.2, kcal: 52 },
   { nombre: "Atún al natural (lata)", proteina: 26, carbs: 0, grasas: 1, kcal: 116 },
@@ -22,24 +22,24 @@ export const FRECUENTES = [
   { nombre: "Manzana", proteina: 0.3, carbs: 14, grasas: 0.2, kcal: 52 },
   { nombre: "Palta", proteina: 2, carbs: 9, grasas: 15, kcal: 160 },
 
-  // Cortes de carne argentinos (cocidos, valores aproximados por 100g)
-  { nombre: "Asado (costilla, cocido)", proteina: 26, carbs: 0, grasas: 22, kcal: 300 },
-  { nombre: "Vacío (cocido)", proteina: 27, carbs: 0, grasas: 18, kcal: 260 },
-  { nombre: "Matambre (cocido)", proteina: 25, carbs: 0, grasas: 20, kcal: 270 },
-  { nombre: "Bife de chorizo (cocido)", proteina: 28, carbs: 0, grasas: 16, kcal: 250 },
-  { nombre: "Bife de lomo (cocido)", proteina: 29, carbs: 0, grasas: 9, kcal: 200 },
-  { nombre: "Nalga (cocida)", proteina: 30, carbs: 0, grasas: 6, kcal: 180 },
-  { nombre: "Peceto (cocido)", proteina: 30, carbs: 0, grasas: 5, kcal: 170 },
-  { nombre: "Cuadril (cocido)", proteina: 29, carbs: 0, grasas: 8, kcal: 190 },
-  { nombre: "Colita de cuadril (cocida)", proteina: 28, carbs: 0, grasas: 10, kcal: 210 },
-  { nombre: "Entraña (cocida)", proteina: 27, carbs: 0, grasas: 20, kcal: 270 },
-  { nombre: "Bola de lomo (cocida)", proteina: 30, carbs: 0, grasas: 6, kcal: 175 },
-  { nombre: "Osobuco (cocido)", proteina: 28, carbs: 0, grasas: 8, kcal: 190 },
-  { nombre: "Carne picada / molida (cocida)", proteina: 26, carbs: 0, grasas: 17, kcal: 250 },
+  // Cortes de carne argentinos (crudos, valores por 100g según FatSecret ES)
+  { nombre: "Asado (costilla, crudo)", proteina: 24, carbs: 0, grasas: 20, kcal: 270 },
+  { nombre: "Vacío (crudo)", proteina: 21.5, carbs: 0, grasas: 5.7, kcal: 144 },
+  { nombre: "Matambre (crudo)", proteina: 18.7, carbs: 0, grasas: 15, kcal: 215 },
+  { nombre: "Bife de chorizo (crudo)", proteina: 20.5, carbs: 0, grasas: 6, kcal: 142 },
+  { nombre: "Bife de lomo (crudo)", proteina: 22, carbs: 0, grasas: 8, kcal: 166 },
+  { nombre: "Nalga (cruda)", proteina: 22.2, carbs: 0, grasas: 3.8, kcal: 129 },
+  { nombre: "Peceto (crudo)", proteina: 22.3, carbs: 0, grasas: 2.6, kcal: 119 },
+  { nombre: "Cuadril (crudo)", proteina: 21.7, carbs: 0, grasas: 7, kcal: 152 },
+  { nombre: "Colita de cuadril (cruda)", proteina: 21, carbs: 0, grasas: 9, kcal: 165 },
+  { nombre: "Entraña (cruda)", proteina: 22.6, carbs: 0, grasas: 8.8, kcal: 176 },
+  { nombre: "Bola de lomo (cruda)", proteina: 21.7, carbs: 0, grasas: 4, kcal: 129 },
+  { nombre: "Osobuco (crudo)", proteina: 20, carbs: 0, grasas: 3, kcal: 110 },
+  { nombre: "Carne picada / molida (cruda, 90/10)", proteina: 20, carbs: 0, grasas: 10, kcal: 176 },
   { nombre: "Milanesa de carne (frita)", proteina: 22, carbs: 12, grasas: 15, kcal: 260 },
-  { nombre: "Pollo pata/muslo (cocido, con piel)", proteina: 26, carbs: 0, grasas: 11, kcal: 210 },
-  { nombre: "Chorizo (parrilla)", proteina: 15, carbs: 2, grasas: 28, kcal: 320 },
-  { nombre: "Morcilla", proteina: 10, carbs: 5, grasas: 20, kcal: 250 },
+  { nombre: "Pollo pata/muslo (crudo, con piel)", proteina: 19.3, carbs: 0, grasas: 8.7, kcal: 161 },
+  { nombre: "Chorizo (parrillero, crudo)", proteina: 15, carbs: 2, grasas: 26, kcal: 296 },
+  { nombre: "Morcilla", proteina: 14.6, carbs: 1.3, grasas: 34.5, kcal: 379 },
 ];
 
 // Búsqueda local dentro de FRECUENTES (sin acentos, case-insensitive)
