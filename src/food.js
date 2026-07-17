@@ -64,8 +64,24 @@ export async function buscarPorTexto(query) {
     `${OFF_BASE}/cgi/search.pl?search_terms=${encodeURIComponent(query)}` +
     `&search_simple=1&action=process&json=1&page_size=25` +
     `&fields=product_name,product_name_es,brands,nutriments`;
-  const res = await fetch(url);
-  const data = await res.json();
+
+  // El endpoint legacy de OFF (cgi/search.pl) es inestable y devuelve
+  // 503 con frecuencia; reintentamos un par de veces antes de fallar.
+  let data;
+  let ultimoError;
+  for (let intento = 0; intento < 3; intento++) {
+    try {
+      const res = await fetch(url);
+      if (!res.ok) throw new Error(`OFF respondió ${res.status}`);
+      data = await res.json();
+      ultimoError = null;
+      break;
+    } catch (e) {
+      ultimoError = e;
+      if (intento < 2) await new Promise((r) => setTimeout(r, 500 * (intento + 1)));
+    }
+  }
+  if (ultimoError) throw ultimoError;
   const productos = (data.products || [])
     .map((p) => {
       const nombre = p.product_name_es || p.product_name;
