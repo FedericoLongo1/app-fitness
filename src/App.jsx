@@ -1,17 +1,10 @@
 import React, { useState, useEffect } from "react";
 import { FRECUENTES, buscarPorCodigo, buscarPorTexto } from "./food.js";
 import Scanner from "./Scanner.jsx";
+import Auth from "./Auth.jsx";
+import { supabase } from "./supabase.js";
+import { loadTargets, saveTargets, loadMeals, addMeal, deleteMeal } from "./data.js";
 
-// ─── Persistencia local ───────────────────────────────────────────
-const todayKey = () => `meals:${new Date().toISOString().slice(0, 10)}`;
-function loadJSON(key, fallback) {
-  try {
-    const raw = localStorage.getItem(key);
-    return raw ? JSON.parse(raw) : fallback;
-  } catch {
-    return fallback;
-  }
-}
 const round1 = (n) => Math.round(n * 10) / 10;
 
 // Escala macros por 100g a la porción en gramos
@@ -26,14 +19,26 @@ function escalar(base100, gramos) {
 }
 
 export default function App() {
-  const [targets, setTargets] = useState(() => loadJSON("targets", { proteina: 160, kcal: 2600 }));
-  const [meals, setMeals] = useState(() => loadJSON(todayKey(), []));
+  const [session, setSession] = useState(undefined); // undefined = cargando | null = sin sesión
+  const [targets, setTargets] = useState({ proteina: 160, kcal: 2600 });
+  const [meals, setMeals] = useState([]);
   const [modo, setModo] = useState(null);        // null | "frecuentes" | "buscar" | "escanear"
   const [seleccion, setSeleccion] = useState(null); // alimento elegido, esperando gramos
   const [gramos, setGramos] = useState(100);
 
-  useEffect(() => { localStorage.setItem("targets", JSON.stringify(targets)); }, [targets]);
-  useEffect(() => { localStorage.setItem(todayKey(), JSON.stringify(meals)); }, [meals]);
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data }) => setSession(data.session));
+    const { data: sub } = supabase.auth.onAuthStateChange((_event, s) => setSession(s));
+    return () => sub.subscription.unsubscribe();
+  }, []);
+
+  const userId = session?.user?.id;
+
+  useEffect(() => {
+    if (!userId) return;
+    loadTargets(userId).then(setTargets);
+    loadMeals(userId).then(setMeals);
+  }, [userId]);
 
   const totals = meals.reduce(
     (a, m) => ({
@@ -52,28 +57,37 @@ export default function App() {
     setModo(null);
   }
 
-  function agregar() {
+  async function agregar() {
     if (!seleccion) return;
     const m = escalar(seleccion, gramos);
-    setMeals((prev) => [
-      ...prev,
-      {
-        id: Date.now(),
-        nombre: seleccion.nombre,
-        gramos,
-        hora: new Date().toLocaleTimeString("es-AR", { hour: "2-digit", minute: "2-digit" }),
-        ...m,
-      },
-    ]);
+    const meal = {
+      nombre: seleccion.nombre,
+      gramos,
+      hora: new Date().toLocaleTimeString("es-AR", { hour: "2-digit", minute: "2-digit" }),
+      ...m,
+    };
     setSeleccion(null);
+    const guardada = await addMeal(userId, meal);
+    setMeals((prev) => [...prev, guardada]);
   }
 
-  function eliminar(id) { setMeals((prev) => prev.filter((x) => x.id !== id)); }
+  async function eliminar(id) {
+    setMeals((prev) => prev.filter((x) => x.id !== id));
+    await deleteMeal(userId, id);
+  }
+
+  function actualizarTargets(next) {
+    setTargets(next);
+    saveTargets(userId, next);
+  }
 
   const protPct = Math.min(100, (totals.proteina / targets.proteina) * 100);
   const kcalPct = Math.min(100, (totals.kcal / targets.kcal) * 100);
   const previa = seleccion ? escalar(seleccion, gramos) : null;
   const S = styles;
+
+  if (session === undefined) return null;
+  if (session === null) return <Auth />;
 
   return (
     <div style={S.app}>
@@ -112,9 +126,9 @@ export default function App() {
           <span style={S.chipEdit}>
             Objetivo:{" "}
             <input style={S.inlineInput} type="number" value={targets.proteina}
-              onChange={(e) => setTargets((t) => ({ ...t, proteina: Number(e.target.value) || 0 }))} aria-label="Objetivo proteína" />g prot ·{" "}
+              onChange={(e) => actualizarTargets({ ...targets, proteina: Number(e.target.value) || 0 })} aria-label="Objetivo proteína" />g prot ·{" "}
             <input style={{ ...S.inlineInput, width: 52 }} type="number" value={targets.kcal}
-              onChange={(e) => setTargets((t) => ({ ...t, kcal: Number(e.target.value) || 0 }))} aria-label="Objetivo calorías" />kcal
+              onChange={(e) => actualizarTargets({ ...targets, kcal: Number(e.target.value) || 0 })} aria-label="Objetivo calorías" />kcal
           </span>
         </div>
       </section>
@@ -206,7 +220,11 @@ export default function App() {
         )}
       </section>
 
-      <footer style={S.footer}>Macros · uso personal · datos de Open Food Facts</footer>
+      <footer style={S.footer}>
+        Macros · uso personal · datos de Open Food Facts
+        <br />
+        <button style={S.logoutBtn} onClick={() => supabase.auth.signOut()}>Cerrar sesión</button>
+      </footer>
     </div>
   );
 }
@@ -335,4 +353,5 @@ const styles = {
   mealItems: { fontSize: 13, color: "#c9c6c0", margin: 0, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", textTransform: "capitalize" },
   removeBtn: { background: "transparent", border: "1px solid #3a3a3e", color: "#8a8781", borderRadius: 8, width: 28, height: 28, cursor: "pointer", fontSize: 12, flexShrink: 0 },
   footer: { textAlign: "center", fontSize: 11, color: "#4a4842", marginTop: 30 },
+  logoutBtn: { marginTop: 10, background: "transparent", border: "none", color: "#6a675f", fontSize: 11, textDecoration: "underline", cursor: "pointer" },
 };
