@@ -87,9 +87,9 @@ La app está organizada por dominios funcionales:
 ## 📸 Capturas
 
 <p align="center">
-  <img src="screenshots/comidas.jpg" width="30%" alt="Registro de comidas y macros" />
-  <img src="screenshots/pesas.jpg" width="30%" alt="Rutinas de pesas" />
-  <img src="screenshots/coach.jpg" width="30%" alt="Coach y análisis semanal" />
+  <img src="screenshots/comidas.jpeg" width="30%" alt="Registro de comidas y macros" />
+  <img src="screenshots/pesas.jpeg" width="30%" alt="Rutinas de pesas" />
+  <img src="screenshots/coach.jpeg" width="30%" alt="Coach y análisis semanal" />
 </p>
 
 <p align="center">
